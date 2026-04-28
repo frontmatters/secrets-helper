@@ -1,0 +1,16 @@
+# Never commit keychain databases or actual secrets
+*.keychain-db
+*.keychain
+.env
+.env.*
+!.env.example
+
+# Personal shortcut files (users should keep these outside the repo)
+config.sh
+shortcuts.sh
+
+# OS / editor noise
+.DS_Store
+*.swp
+.idea/
+.vscode/
