@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-04-29
+
+### Fixed
+- `secrets --version` and `keybuddy --version` printed "version unknown — VERSION file missing" when installed via Homebrew. The CLI computed `VERSION_FILE=$SCRIPT_DIR/../VERSION`, which is correct when run from a source checkout but wrong under brew's layout where VERSION lives in `libexec/`. The CLI now searches both `../VERSION` and `../libexec/VERSION` and uses whichever exists.
+
 ## [0.1.0] - 2026-04-29
 
 ### Added
@@ -29,6 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keychain databases (`*.keychain-db`) live exclusively in `~/Library/Keychains/` and never enter the repo.
 - CLI relies on macOS `security(1)` — no custom crypto.
 
-<!-- Update these URLs to your fork/upstream once published. -->
-[Unreleased]: https://example.com/keybuddy/compare/v0.1.0...HEAD
-[0.1.0]: https://example.com/keybuddy/releases/tag/v0.1.0
+[Unreleased]: https://github.com/frontmatters/keybuddy/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/frontmatters/keybuddy/releases/tag/v0.1.1
+[0.1.0]: https://github.com/frontmatters/keybuddy/releases/tag/v0.1.0
