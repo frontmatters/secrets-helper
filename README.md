@@ -1,6 +1,10 @@
 # secrets-helper
 
-Tiered macOS Keychain wrapper for storing API tokens, credentials, and signing keys with **different security policies per tier**.
+[![version](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
+[![platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](#)
+[![license](https://img.shields.io/badge/license-MIT-green.svg)](#license)
+
+Tiered macOS Keychain wrapper for storing API tokens, credentials, and signing keys with **different security policies per tier**, plus an AI agent skill so coding assistants understand and use it.
 
 You decide:
 - How many tiers (default: 3)
@@ -86,6 +90,64 @@ Then in your shell rc:
 
 ```bash
 source ~/.config/secrets-helper/shortcuts.sh
+```
+
+## AI agent skill
+
+The repo ships with an instruction document that teaches AI coding agents how to use `secrets-helper`: the tier model, all commands, security rules, common workflows, and anti-patterns. Once installed, agents like Claude Code, Cursor, Copilot, etc. will use the keychain CLI for credential operations instead of asking you to paste tokens in chat or writing them to `.env` files.
+
+The setup wizard auto-detects installed agents and offers installation. Supported targets:
+
+| Agent | Install location | Mode |
+|-------|------------------|------|
+| Claude Code | `~/.claude/skills/secrets-helper/SKILL.md` | Global (auto-installable) |
+| Kiro | `~/.kiro/steering/secrets-helper.md` | Global (auto-installable) |
+| Cursor | `<project>/.cursor/rules/secrets-helper.mdc` | Project |
+| GitHub Copilot | `<project>/.github/copilot-instructions.md` | Project |
+| Windsurf | `<project>/AGENTS.md` or `.windsurfrules` | Project |
+| OpenAI Codex / Factory / Amp / Kilo Code | `<project>/AGENTS.md` | Project |
+| Gemini CLI | `<project>/GEMINI.md` | Project |
+| Roo Code | `<project>/.roo/rules/secrets-helper.md` | Project |
+| Cline | `<project>/.clinerules/secrets-helper.md` | Project |
+| Zed | `<project>/.rules` or `AGENTS.md` | Project |
+| Aider | `<project>/CONVENTIONS.md` (referenced via `--read`) | Project |
+
+`AGENTS.md` is supported by an [open standard](https://agents.md/) that covers Codex, Factory, Amp, Kilo Code, Cursor (alt), Zed, and Windsurf — one file at a project root usually covers them all. The setup wizard prints copy-paste commands for project-level installs.
+
+To install the skill manually outside of the wizard:
+
+```bash
+# Claude Code (global, all projects)
+mkdir -p ~/.claude/skills/secrets-helper
+cp agent-skill/claude-code/SKILL.md ~/.claude/skills/secrets-helper/
+
+# Cursor (per project)
+mkdir -p .cursor/rules
+cp agent-skill/cursor/secrets-helper.mdc .cursor/rules/
+
+# Universal AGENTS.md (per project — covers most agents)
+cp agent-skill/secrets-helper.md AGENTS.md
+```
+
+Cursor User Rules and Windsurf Custom Instructions are GUI-only — copy-paste the contents of [`agent-skill/secrets-helper.md`](agent-skill/secrets-helper.md) into the app's settings panel.
+
+## Versioning and updates
+
+```bash
+secrets --version    # → secrets-helper 0.1.0
+cat VERSION          # → 0.1.0
+```
+
+This project follows [Semantic Versioning](https://semver.org/). See [CHANGELOG.md](CHANGELOG.md) for release notes.
+
+To update:
+
+```bash
+cd ~/Developer/secrets-helper
+git pull
+secrets --version    # confirm new version
+# Re-run setup.sh ONLY if CHANGELOG mentions a setup-affecting change.
+# Existing keychains are not touched.
 ```
 
 ## Setup another machine
