@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-04-29
+
+### Fixed
+- `--version` still failed under Homebrew because the script computed `SCRIPT_DIR` from `${BASH_SOURCE[0]}` without resolving symlinks. Brew's install path is a symlink chain (`/opt/homebrew/bin/secrets` → `Cellar/keybuddy/0.1.x/bin/secrets`), so `dirname` returned `/opt/homebrew/bin` and `../VERSION` looked for `/opt/homebrew/VERSION`, which doesn't exist. The script now walks the symlink chain to find the real script directory before resolving the VERSION file path.
+
 ## [0.1.1] - 2026-04-29
 
 ### Fixed
@@ -34,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keychain databases (`*.keychain-db`) live exclusively in `~/Library/Keychains/` and never enter the repo.
 - CLI relies on macOS `security(1)` — no custom crypto.
 
-[Unreleased]: https://github.com/frontmatters/keybuddy/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/frontmatters/keybuddy/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/frontmatters/keybuddy/releases/tag/v0.1.2
 [0.1.1]: https://github.com/frontmatters/keybuddy/releases/tag/v0.1.1
 [0.1.0]: https://github.com/frontmatters/keybuddy/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 # keybuddy
 
-[![version](https://img.shields.io/badge/version-0.1.1-blue.svg)](CHANGELOG.md)
+[![version](https://img.shields.io/badge/version-0.1.2-blue.svg)](CHANGELOG.md)
 [![platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](#)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](#license)
 
