@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Example: project-specific shortcut functions
 #
-# Copy this file somewhere outside the repo (e.g. ~/.config/keybuddy/shortcuts.sh)
+# Copy this file somewhere outside the repo (e.g. ~/.config/secrets-helper/shortcuts.sh)
 # and source it from your shell rc to define your own convenience functions.
 #
 # These wrap the generic `secrets get` calls for the services YOU use.

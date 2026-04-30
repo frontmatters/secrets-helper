@@ -1,5 +1,5 @@
 ---
-name: keybuddy
+name: secrets-helper
 description: "Use when reading, storing, or referencing API tokens, credentials, or secrets on macOS. Activates for token management, .env file discussions, authentication setup, and any time the user asks about API keys or credentials. The tool stores secrets in tiered macOS keychains (auto-unlock / session / prompt policies) and replaces .env-based secret storage."
 allowed-tools:
   - Bash
@@ -7,13 +7,13 @@ allowed-tools:
   - Grep
 ---
 
-# Keybuddy — Password Management for AI Agents
+# secrets-helper — Password Management for AI Agents
 
-This skill teaches you how to use `keybuddy`, a tiered macOS Keychain wrapper. When this tool is installed on the user's machine, you should use it as the **single source of truth** for API tokens, credentials, and signing keys — not `.env` files, not chat, not memory.
+This skill teaches you how to use `secrets-helper`, a tiered macOS Keychain wrapper. When this tool is installed on the user's machine, you should use it as the **single source of truth** for API tokens, credentials, and signing keys — not `.env` files, not chat, not memory.
 
-## What `keybuddy` is
+## What `secrets-helper` is
 
-`keybuddy` is a thin CLI on top of macOS Keychain. It stores secrets across multiple keychains ("tiers"), each with a different security policy. Users configure tiers during setup; you discover them at runtime.
+`secrets-helper` is a thin CLI on top of macOS Keychain. It stores secrets across multiple keychains ("tiers"), each with a different security policy. Users configure tiers during setup; you discover them at runtime.
 
 **The user's threat model:** different secrets need different friction. A dev API key should be readable without prompting (ergonomics). A production deploy token should require a session unlock (caution). A signing certificate should prompt every time (paranoia). One keychain can't satisfy all three — hence tiers.
 
@@ -32,7 +32,7 @@ Do **not** activate when:
 - The "secret" is non-sensitive config (URL, port, feature flag) — `.env` is fine for that
 - The tool is not installed (check first — see Detection below)
 
-## Detection — is `keybuddy` available?
+## Detection — is `secrets-helper` available?
 
 Always verify before using. If absent, fall back gracefully (ask user, suggest installing, do not invent commands).
 
@@ -40,7 +40,7 @@ Always verify before using. If absent, fall back gracefully (ask user, suggest i
 command -v secrets >/dev/null 2>&1 && echo "installed" || echo "missing"
 ```
 
-If missing, suggest the user install it from their `keybuddy` repo (`./setup.sh`) before proceeding.
+If missing, suggest the user install it from their `secrets-helper` repo (`./setup.sh`) before proceeding.
 
 ## The tier model
 
@@ -164,7 +164,7 @@ APPLE_APP_PASSWORD=$(secrets get signing-secrets APPLE_APP_PASSWORD) xcrun notar
 
 | Symptom | Cause | Resolution |
 |---------|-------|------------|
-| `command not found: secrets` | Tool not installed or not in PATH | Ask user to run `keybuddy/setup.sh` and add `bin/` to PATH |
+| `command not found: secrets` | Tool not installed or not in PATH | Ask user to run `secrets-helper/setup.sh` and add `bin/` to PATH |
 | `Error: unknown tier 'X'` | Tier not configured | Run `secrets tiers` to see configured tiers; may need different name |
 | Keychain prompts for password | Tier is `session` or `prompt` policy and is locked | Either run `secrets unlock <tier>` first (with user consent) or accept the prompt |
 | `Error: config not found` | Setup hasn't been run | Direct user to run `setup.sh` |
@@ -174,7 +174,7 @@ APPLE_APP_PASSWORD=$(secrets get signing-secrets APPLE_APP_PASSWORD) xcrun notar
 
 These are mistakes agents commonly make. Do not do them.
 
-1. **Reading `.env` files when keybuddy is installed.** Suggest migration: "I see this project has a `.env` with API keys. Want me to migrate them into your keychain via `secrets add`?"
+1. **Reading `.env` files when secrets-helper is installed.** Suggest migration: "I see this project has a `.env` with API keys. Want me to migrate them into your keychain via `secrets add`?"
 2. **Asking the user to paste a secret in chat** when you could read it from the keychain.
 3. **Using `export` for credentials** at top of a script. Use scoped per-command env vars instead.
 4. **Logging the value during debugging.** Log the *length* or the *first 4 chars + ...* if you must verify presence:
@@ -185,7 +185,7 @@ These are mistakes agents commonly make. Do not do them.
 6. **Hardcoding tier names** without discovery. Names are user-configurable.
 7. **Calling `secrets get` on a `prompt` tier without user awareness** — will pop up a system password prompt unexpectedly.
 
-## What `keybuddy` deliberately does NOT do
+## What `secrets-helper` deliberately does NOT do
 
 - Sync across machines (each Mac has its own keychain — by design)
 - Work on Linux or Windows

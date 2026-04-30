@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# keybuddy - Sourceable shell functions for tiered keychain access.
+# secrets-helper - Sourceable shell functions for tiered keychain access.
 #
 # Add to your ~/.zshrc or ~/.bashrc:
-#   source /path/to/keybuddy/lib/keybuddy.sh
+#   source /path/to/secrets-helper/lib/secrets-helper.sh
 #
 # Then use the bash functions directly:
 #   get dev-secrets MY_TOKEN
@@ -13,13 +13,13 @@
 # codes and behavior — the only difference is namespace (no `secrets ` prefix).
 
 # Load user preferences (banner, etc.). Created by setup.sh.
-_kb_prefs="${XDG_CONFIG_HOME:-$HOME/.config}/keybuddy/preferences.sh"
+_kb_prefs="${XDG_CONFIG_HOME:-$HOME/.config}/secrets-helper/preferences.sh"
 [[ -f "$_kb_prefs" ]] && source "$_kb_prefs"
 unset _kb_prefs
 
 if ! command -v secrets >/dev/null 2>&1; then
-    echo "keybuddy: 'secrets' CLI not found in PATH" >&2
-    echo "  Add the bin/ directory of keybuddy to your PATH first." >&2
+    echo "secrets-helper: 'secrets' CLI not found in PATH" >&2
+    echo "  Add the bin/ directory of secrets-helper to your PATH first." >&2
     return 1 2>/dev/null || exit 1
 fi
 
@@ -31,10 +31,10 @@ tiers()  { secrets tiers; }
 lock()   { secrets lock "$@"; }
 unlock() { secrets unlock "$@"; }
 
-# Load confirmation banner. Suppressed when KEYBUDDY_QUIET=1 (env var or
+# Load confirmation banner. Suppressed when SECRETS_HELPER_QUIET=1 (env var or
 # preferences.sh, set during `setup.sh` or by exporting in your shell rc).
-if [[ -z "${KEYBUDDY_QUIET:-}" ]]; then
+if [[ -z "${SECRETS_HELPER_QUIET:-}" ]]; then
     _kb_v=$(secrets --version 2>/dev/null | awk '{print $2}')
-    echo "keybuddy ${_kb_v:-?} loaded — try \`tiers\` to see your configured tiers"
+    echo "secrets-helper ${_kb_v:-?} loaded — try \`tiers\` to see your configured tiers"
     unset _kb_v
 fi
