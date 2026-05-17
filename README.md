@@ -34,13 +34,23 @@ Each tier is a separate macOS keychain (`~/Library/Keychains/<tier>.keychain-db`
 ```bash
 git clone https://github.com/<your-account>/secrets-helper.git ~/Developer/secrets-helper
 cd ~/Developer/secrets-helper
+./install.sh
+```
+
+`install.sh` is non-interactive and idempotent. It links the `secrets` CLI into `~/.local/bin` and leaves existing keychains/config untouched.
+
+For first-time configuration, run the interactive wizard:
+
+```bash
 ./setup.sh
 ```
 
-The wizard walks you through tier configuration. Then add the CLI to your `PATH`:
+The wizard walks you through tier configuration and optional agent skill installation.
+
+If `~/.local/bin` is not on your `PATH`, add it:
 
 ```bash
-echo 'export PATH="$HOME/Developer/secrets-helper/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 ```
 
 (Optional) Source the bash function wrapper for shorter commands:

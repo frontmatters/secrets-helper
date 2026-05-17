@@ -150,6 +150,11 @@ print_project_install_instructions() {
 
 # --- Wizard ---
 main() {
+    if [[ -x "$SCRIPT_DIR/install.sh" ]]; then
+        "$SCRIPT_DIR/install.sh"
+        echo ""
+    fi
+
     cat <<BANNER
 
 ==========================================
