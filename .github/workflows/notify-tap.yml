@@ -1,0 +1,30 @@
+name: Notify Homebrew tap
+
+# On every published release, tell the Homebrew tap to bump its formula.
+#
+# One-time setup: create a fine-grained PAT with "Contents: write" on
+# frontmatters/homebrew-secrets-helper and add it here as the repo secret
+# TAP_DISPATCH_TOKEN (Settings -> Secrets and variables -> Actions).
+# Without the secret this step fails harmlessly; the tap also self-syncs daily.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger tap formula bump
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_DISPATCH_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${TAP_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/frontmatters/homebrew-secrets-helper/dispatches \
+            -d "{\"event_type\":\"secrets-helper-release\",\"client_payload\":{\"version\":\"${version}\"}}"
