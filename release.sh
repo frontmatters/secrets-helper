@@ -22,10 +22,17 @@ BUMP="$1"; shift || true
 ASSUME_YES=0
 [[ "${1:-}" == "-y" || "${1:-}" == "--yes" ]] && ASSUME_YES=1
 
-# --- Repo slug from origin (owner/repo), tolerating https or ssh remotes ---
-origin="$(git config --get remote.origin.url || true)"
-REPO="$(printf '%s' "$origin" | sed -E 's#(git@github\.com:|https://github\.com/)##; s#\.git$##')"
-[[ -n "$REPO" ]] || die "could not determine GitHub owner/repo from origin remote"
+# --- Identify the GitHub remote (this repo also pushes to a Gitea 'origin') ---
+# The GitHub remote is what drives the release + the tap auto-bump pipeline, so
+# the slug, the gh release, and the URLs must come from it — not from origin.
+GH_REMOTE=""; GH_URL=""
+for r in $(git remote); do
+  u="$(git remote get-url "$r" 2>/dev/null || true)"
+  case "$u" in *github.com*) GH_REMOTE="$r"; GH_URL="$u"; break ;; esac
+done
+[[ -n "$GH_REMOTE" ]] || die "no github.com remote found (needed for release + tap pipeline)"
+REPO="$(printf '%s' "$GH_URL" | sed -E 's#(git@github\.com:|https://github\.com/)##; s#\.git$##')"
+[[ "$REPO" == */* ]] || die "could not parse owner/repo from $GH_URL"
 
 # --- Compute new version ---
 CUR="$(cat VERSION)"
@@ -45,6 +52,7 @@ DATE="$(date '+%Y-%m-%d')"
 git diff --quiet && git diff --cached --quiet \
   || die "working tree not clean — commit your changes (incl. CHANGELOG [Unreleased] notes) first"
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+[[ "$BRANCH" != "HEAD" ]] || die "detached HEAD — run 'git checkout main' first"
 [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]] \
   || echo "WARN: on branch '$BRANCH', not main/master — continuing"
 git rev-parse -q --verify "refs/tags/v${NEW}" >/dev/null \
@@ -60,8 +68,9 @@ echo "  repo:    $REPO"
 echo "  version: $CUR -> $NEW"
 echo "  date:    $DATE"
 echo "  files:   VERSION, README.md (badge), CHANGELOG.md"
-echo "  git:     commit 'Release v$NEW' + annotated tag v$NEW -> push origin $BRANCH"
-echo "  release: gh release create v$NEW (notes from CHANGELOG)"
+echo "  git:     commit 'Release v$NEW' + annotated tag v$NEW"
+echo "  push:    $BRANCH + tag to all remotes [$(git remote | tr '\n' ' ')]"
+echo "  release: gh release create v$NEW on $REPO (via '$GH_REMOTE', notes from CHANGELOG)"
 if [[ "$ASSUME_YES" -ne 1 ]]; then
   printf 'Continue? [y/N]: '; read -r ans
   [[ "$ans" == "y" || "$ans" == "Y" ]] || die "aborted"
@@ -84,8 +93,11 @@ git add VERSION README.md CHANGELOG.md
 git commit -m "Release v$NEW"
 git tag -a "v$NEW" -m "Release v$NEW"
 
-# --- 5. push (commit + tag) — triggers the tap auto-bump ---
-git push origin "$BRANCH" --follow-tags
+# --- 5. push branch + tag to every remote (the github push fires the tap pipeline) ---
+for r in $(git remote); do
+  echo "  pushing to $r ..."
+  git push "$r" "$BRANCH" --follow-tags
+done
 
 # --- 6. GitHub Release with the changelog section as notes ---
 if command -v gh >/dev/null; then
@@ -94,8 +106,8 @@ if command -v gh >/dev/null; then
     g && /^## \[/ {exit}
     g {print}
   ' CHANGELOG.md | perl -0pe 's/\A\s+//; s/\s+\z/\n/')"
-  gh release create "v$NEW" --title "v$NEW" --notes "${notes:-Release v$NEW}"
-  echo "Published GitHub Release v$NEW"
+  gh release create "v$NEW" -R "$REPO" --title "v$NEW" --notes "${notes:-Release v$NEW}"
+  echo "Published GitHub Release v$NEW on $REPO"
 fi
 
 echo "Done. v$NEW released. The Homebrew tap will auto-bump within moments (or daily)."
