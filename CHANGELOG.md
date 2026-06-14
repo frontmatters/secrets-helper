@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
 ## [0.2.1] - 2026-05-17
 
 ### Added
 - Non-interactive `install.sh` for idempotent CLI installation.
 - `setup.sh` now runs `install.sh` first for backwards-compatible setup.
-
-## [Unreleased]
 
 ## [0.2.0] - 2026-04-29
 
@@ -69,7 +69,8 @@ Keychains created during setup are unaffected — they live in `~/Library/Keycha
 - Keychain databases (`*.keychain-db`) live exclusively in `~/Library/Keychains/` and never enter the repo.
 - CLI relies on macOS `security(1)` — no custom crypto.
 
-[Unreleased]: https://github.com/frontmatters/secrets-helper/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/frontmatters/secrets-helper/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.2.1
 [0.2.0]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.2.0
 [0.1.2]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.1.2
 [0.1.1]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.1.1
