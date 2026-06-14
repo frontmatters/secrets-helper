@@ -1,11 +1,14 @@
 name: Notify Homebrew tap
 
-# On every published release, tell the Homebrew tap to bump its formula.
+# On every pushed v* tag, tell the Homebrew tap to bump its formula.
 #
-# One-time setup: create a fine-grained PAT with "Contents: write" on
-# frontmatters/homebrew-secrets-helper and add it here as the repo secret
-# TAP_DISPATCH_TOKEN (Settings -> Secrets and variables -> Actions).
-# Without the secret this step fails harmlessly; the tap also self-syncs daily.
+# OPTIONAL: this only matters for tags created OUTSIDE release.sh (e.g. via the
+# GitHub UI). release.sh already triggers the tap directly with your local gh
+# auth, so the common path needs no secret.
+# To enable this fallback, create a fine-grained PAT with "Contents: write" on
+# frontmatters/homebrew-secrets-helper and add it as the repo secret
+# TAP_DISPATCH_TOKEN. Without the secret the job is a no-op (the tap also
+# self-syncs daily), so it never fails red.
 
 on:
   push:
@@ -21,6 +24,10 @@ jobs:
           TAP_TOKEN: ${{ secrets.TAP_DISPATCH_TOKEN }}
           TAG: ${{ github.ref_name }}
         run: |
+          if [ -z "${TAP_TOKEN}" ]; then
+            echo "TAP_DISPATCH_TOKEN not set — skipping (release.sh triggers the tap directly; daily schedule is the fallback)."
+            exit 0
+          fi
           version="${TAG#v}"
           curl -fsSL -X POST \
             -H "Authorization: Bearer ${TAP_TOKEN}" \

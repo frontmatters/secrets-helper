@@ -110,4 +110,14 @@ if command -v gh >/dev/null; then
   echo "Published GitHub Release v$NEW on $REPO"
 fi
 
-echo "Done. v$NEW released. The Homebrew tap will auto-bump within moments (or daily)."
+# --- 7. Trigger the Homebrew tap to bump now (uses your local gh auth, no PAT) ---
+TAP="${REPO%/*}/homebrew-${REPO#*/}"
+if command -v gh >/dev/null; then
+  if gh workflow run sync-formula.yml -R "$TAP" -f version="$NEW" >/dev/null 2>&1; then
+    echo "Triggered formula sync on $TAP"
+  else
+    echo "WARN: could not trigger $TAP sync (gh auth/access?); its daily schedule will catch it"
+  fi
+fi
+
+echo "Done. v$NEW released. The Homebrew tap will bump shortly (or via its daily schedule)."
