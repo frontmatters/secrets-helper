@@ -22,7 +22,7 @@ BUMP="$1"; shift || true
 ASSUME_YES=0
 [[ "${1:-}" == "-y" || "${1:-}" == "--yes" ]] && ASSUME_YES=1
 
-# --- Identify the GitHub remote (this repo also pushes to a Gitea 'origin') ---
+# --- Identify the GitHub remote ---
 # The GitHub remote is what drives the release + the tap auto-bump pipeline, so
 # the slug, the gh release, and the URLs must come from it — not from origin.
 GH_REMOTE=""; GH_URL=""

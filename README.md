@@ -32,8 +32,8 @@ Each tier is a separate macOS keychain (`~/Library/Keychains/<tier>.keychain-db`
 ## Install
 
 ```bash
-git clone https://github.com/<your-account>/secrets-helper.git ~/Developer/secrets-helper
-cd ~/Developer/secrets-helper
+git clone https://github.com/<your-account>/secrets-helper.git ~/secrets-helper
+cd ~/secrets-helper
 ./install.sh
 ```
 
@@ -56,7 +56,7 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 (Optional) Source the bash function wrapper for shorter commands:
 
 ```bash
-echo 'source ~/Developer/secrets-helper/lib/secrets-helper.sh' >> ~/.zshrc
+echo 'source ~/secrets-helper/lib/secrets-helper.sh' >> ~/.zshrc
 ```
 
 ## Usage
@@ -157,7 +157,7 @@ This project follows [Semantic Versioning](https://semver.org/). See [CHANGELOG.
 To update:
 
 ```bash
-cd ~/Developer/secrets-helper
+cd ~/secrets-helper
 git pull
 secrets --version    # confirm new version
 # Re-run setup.sh ONLY if CHANGELOG mentions a setup-affecting change.
@@ -180,7 +180,7 @@ security delete-keychain ~/Library/Keychains/signing-secrets.keychain-db
 
 # Remove config and repo
 rm -rf ~/.config/secrets-helper
-rm -rf ~/Developer/secrets-helper
+rm -rf ~/secrets-helper
 ```
 
 ## How it works
