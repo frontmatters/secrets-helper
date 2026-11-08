@@ -148,6 +148,21 @@ print_project_install_instructions() {
     fi
 }
 
+usage() {
+    cat <<'USAGE'
+Usage: setup.sh [OPTIONS]
+
+Create and configure the tiered macOS keychains used by secrets-helper.
+
+Options:
+  -h, --help       Show this help and exit without changing anything
+      --version    Show the setup version and exit without changing anything
+
+The setup wizard is interactive and may create keychains. Run it without
+options only when you intend to configure or reconfigure secrets-helper.
+USAGE
+}
+
 # --- Wizard ---
 main() {
     if [[ -x "$SCRIPT_DIR/install.sh" ]]; then
@@ -165,7 +180,7 @@ This wizard creates one or more macOS keychains, each with its own
 security policy. You decide the names, count, and policy per tier.
 
 You will be prompted to set a password for each keychain.
-Use the same password as your login keychain to enable auto-unlock.
+For an auto-unlock tier leave the password empty; macOS does not open other keychains with your login.
 
 BANNER
 
@@ -189,7 +204,7 @@ BANNER
         name=$(prompt "Name" "$default_name")
 
         echo "Security policy:"
-        echo "  1) auto-unlock  — always accessible (convenient for AI tools, dev tokens)"
+        echo "  1) auto-unlock  — empty password, opened by 'secrets get' when needed (AI tools, dev tokens)"
         echo "  2) session      — unlocked per shell, locks on sleep or after 1h idle"
         echo "  3) prompt       — asks for password every time"
         policy=$(prompt_choice "Choice" "$default_policy")
@@ -220,7 +235,11 @@ BANNER
         create_keychain "${names[$i]}" "${policies[$i]}"
     done
 
-    # Save config
+    # Save config. bin/secrets only reads literal lists: strip what would make a
+    # value code ($, backticks, quotes, backslashes) before writing it.
+    local i
+    for i in "${!descs[@]}"; do descs[$i]="${descs[$i]//[\$\`\"\\]/}"; done
+    for i in "${!names[@]}"; do names[$i]="${names[$i]//[^A-Za-z0-9._@:+-]/}"; done
     mkdir -p "$CONFIG_DIR"
     {
         echo "# secrets-helper config"
@@ -237,6 +256,7 @@ BANNER
         printf '"%s" ' "${descs[@]}"
         printf ')\n'
     } > "$CONFIG_FILE"
+    chmod 600 "$CONFIG_FILE"
 
     echo ""
     echo "Config written to $CONFIG_FILE"
@@ -322,10 +342,19 @@ BANNER
     echo "==========================================="
     echo "  1. Add to PATH:        export PATH=\"$SCRIPT_DIR/bin:\$PATH\""
     echo "  2. (Optional) source:  source $SCRIPT_DIR/lib/secrets-helper.sh"
-    echo "  3. Add a secret:       secrets add ${names[0]} MY_TOKEN <value>"
+    echo "  3. Add a secret:       secrets add ${names[0]} MY_TOKEN   (asks for the value)"
     echo "  4. Read a secret:      secrets get ${names[0]} MY_TOKEN"
     echo "  5. Check version:      secrets --version"
     echo ""
 }
 
-main "$@"
+case "${1:-}" in
+    "" ) main ;;
+    -h|--help ) usage ;;
+    --version ) printf '%s\n' "$VERSION" ;;
+    * )
+        echo "Unknown option: $1" >&2
+        usage >&2
+        exit 2
+        ;;
+esac

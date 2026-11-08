@@ -77,16 +77,17 @@ done
 ## Reading a secret
 
 ```bash
-secrets get <tier> <name>
+$(secrets get <tier> <name>)   # only inside the command that uses the value
 ```
 
 **Critical security rules** when consuming the value:
 
-1. **Never `echo` or print the value to stdout.** The output of `secrets get` is the secret. If you echo it, it appears in the conversation transcript.
-2. **Use shell substitution** to pass it directly to the tool that needs it:
+1. **Never run `secrets get` on its own, and never `echo` the value.** Its output IS the secret: whatever your shell tool prints lands in the conversation transcript and its logs. Only ever use it inside `$(...)` that feeds the consuming command.
+2. **Hand the value over without putting it in an argument list.** Arguments are visible to anyone listing processes (`ps`). For curl, pass the header through a file descriptor:
    ```bash
-   curl -H "Authorization: token $(secrets get dev-secrets GITHUB_TOKEN)" https://api.github.com/user
+   curl -K <(printf 'header = "Authorization: token %s"\n' "$(secrets get dev-secrets GITHUB_TOKEN)") https://api.github.com/user
    ```
+   (`printf` is a shell builtin, so the value never becomes a process argument.)
 3. **Do not assign to environment variables** unless strictly necessary. If you must, scope tightly:
    ```bash
    GITHUB_TOKEN=$(secrets get dev-secrets GITHUB_TOKEN) gh repo list  # scoped to one command
@@ -104,15 +105,16 @@ When the user gives you a new token (paste in chat, file, or generate workflow):
    - Dev tools / API keys for AI: `auto-unlock` tier
    - Production / deploy: `session` tier
    - Signing / Apple / high-risk: `prompt` tier
-2. **Use `secrets add`** — this is `add or update`, idempotent:
+2. **Let the user type the value.** Ask them to run, in their own terminal:
    ```bash
-   secrets add <tier> <NAME> <VALUE>
+   secrets add <tier> <NAME>          # asks for the value, hidden
    ```
+   The value is never an argument (`secrets add <tier> <NAME> <VALUE>` is refused). If it is in a file: `secrets add <tier> <NAME> < file`. Do not store a token the user pasted into chat on their behalf without saying that it is now in the transcript and should be rotated.
 3. **Naming convention**: UPPER_SNAKE_CASE, descriptive (`GITHUB_TOKEN_WORK`, `ANTHROPIC_API_KEY`, `STRIPE_PROD_SECRET`).
 4. **Suggest the user clear the source**: if they pasted the token in chat, suggest scrolling that out of view; if it was in a file, suggest deleting the file after `secrets add` succeeds.
 5. **Verify the write** with `secrets get` — but pipe through a length check, not a print:
    ```bash
-   v=$(secrets get <tier> <NAME>); echo "stored: ${#v} chars"
+   v=$(secrets get <tier> <NAME>); echo "stored: ${#v} chars"; unset v
    ```
 
 ## Listing and managing
@@ -131,12 +133,11 @@ secrets --version                 # check installed version
 
 ### GitHub authentication
 ```bash
-# Multi-account: use suffix in name
-secrets get dev-secrets GITHUB_TOKEN_WORK
-secrets get dev-secrets GITHUB_TOKEN_PERSONAL
+# Multi-account: one name per account (GITHUB_TOKEN_WORK, GITHUB_TOKEN_PERSONAL);
+# see which exist with: secrets list dev-secrets
 
-# In a curl call (preferred)
-curl -H "Authorization: token $(secrets get dev-secrets GITHUB_TOKEN)" https://api.github.com/user
+# In a curl call (preferred): the header through a file descriptor, not argv
+curl -K <(printf 'header = "Authorization: token %s"\n' "$(secrets get dev-secrets GITHUB_TOKEN_WORK)") https://api.github.com/user
 
 # With gh CLI (one-shot env var)
 GH_TOKEN=$(secrets get dev-secrets GITHUB_TOKEN) gh repo list
@@ -174,12 +175,12 @@ APPLE_APP_PASSWORD=$(secrets get signing-secrets APPLE_APP_PASSWORD) xcrun notar
 
 These are mistakes agents commonly make. Do not do them.
 
-1. **Reading `.env` files when secrets-helper is installed.** Suggest migration: "I see this project has a `.env` with API keys. Want me to migrate them into your keychain via `secrets add`?"
+1. **Reading `.env` files when secrets-helper is installed.** Do not open them: their values would land in the transcript. Suggest migration instead, done by the user: `secrets add dev-secrets NAME` for each key, typing or piping the value in.
 2. **Asking the user to paste a secret in chat** when you could read it from the keychain.
 3. **Using `export` for credentials** at top of a script. Use scoped per-command env vars instead.
-4. **Logging the value during debugging.** Log the *length* or the *first 4 chars + ...* if you must verify presence:
+4. **Logging the value during debugging, or any part of it.** Not even a prefix: a prefix narrows a guess and identifies the token. Log the length only:
    ```bash
-   v=$(secrets get dev-secrets X); echo "${v:0:4}... (${#v} chars)"
+   v=$(secrets get dev-secrets X); echo "present: ${#v} chars"; unset v
    ```
 5. **Saving secrets to a "memory" or notes file.** They live in the keychain only.
 6. **Hardcoding tier names** without discovery. Names are user-configurable.
@@ -203,7 +204,7 @@ DISCOVERY     secrets tiers
 
 READ          $(secrets get <tier> <NAME>)            ← shell substitution, never echo
 
-WRITE         secrets add <tier> <NAME> <VALUE>       ← confirm tier with user first
+WRITE         secrets add <tier> <NAME>               ← the user types the value; confirm tier first
 
 DELETE        secrets del <tier> <NAME>               ← irreversible, confirm
 

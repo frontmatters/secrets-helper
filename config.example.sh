@@ -25,3 +25,11 @@ apple_app_password() {
     local app="${1:-default}"
     secrets get signing-secrets "APPLE_APP_PASSWORD_${app}"
 }
+
+# --- Optional: tiers `secrets pull` must never read from ------------------------
+# A tier holding credentials that leaked and are awaiting revocation should not be
+# copied to a second machine — that spreads the problem instead of ending it.
+# Set this in your config.sh (not here) to match what you called yours.
+# Defaults to ("quarantine") when unset.
+#
+# NEVER_PULL_TIERS=("quarantine")

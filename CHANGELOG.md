@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `secrets-helper-setup --help` and `--version` now show usage or the version
+  without starting the interactive wizard or changing keychains.
+
+### Security
+
+- `secrets add TIER NAME` reads the value from stdin (hidden when typed); a
+  value given as an argument is refused, because it showed in process lists
+  and shell history. `move` and `pull` store through the same helper, which
+  hands the value to `security -i` on stdin and reads it back.
+- `create-tier` passes the new keychain's password to `security -i` on stdin
+  instead of `create-keychain -p` on the command line.
+- `pull` accepts key names of `A-Z a-z 0-9 . _ @ : -` only, from you and from
+  the other machine's list, so a name can no longer run code on the other Mac;
+  a host that starts with `-` is refused and ssh gets `--`.
+- `get` opens a locked auto-unlock tier (they all start locked after a reboot)
+  and says `secrets unlock TIER` for a tier that will not open, instead of
+  failing without a word; the README and setup no longer promise "always
+  accessible".
+- The agent skill (all three copies) no longer shows agents how to print a
+  value, a prefix of one, or put one in an argument list: `secrets get` only
+  inside the consuming command, curl gets the header through `-K <(...)`, new
+  values are typed by the user. `tests/skill-lint.test.sh` keeps it that way.
+- The config is only read when it is yours, not writable by others, and holds
+  nothing but literal lists of the known keys; a line with `$`, backticks or a
+  command is refused instead of run. setup.sh strips such characters from
+  names and descriptions and writes the file with mode 600.
+- Backup and restore (new in this release): the backup password reaches the
+  helper on stdin, never in the environment of child processes; restore adds
+  the tiers to the keychain search list instead of replacing it; a backup
+  whose file names point outside the restore directory is refused; backup and
+  restored files are created with mode 600 from the start.
+
+### Fixed
+- `pull` now unlocks the target tier before writing. A tier created moments
+  earlier is not necessarily unlocked, and the first write failed — which is how
+  a two-key pull could quietly deliver one key.
+- A failed write is reported as `failed`, not `skipped`, and the command exits
+  non-zero. Reporting both as "skipped" made a half-finished pull read like a
+  success.
+
+## [0.3.0] - 2026-09-08
+
+### Added
+- `secrets pull HOST TIER NAME|GLOB [--force]` — copy secrets from another
+  machine's keychain over ssh. The value goes keychain → ssh → keychain: never a
+  file, never stdout, never your shell history. Existing local keys are skipped
+  unless `--force`.
+- `secrets remote-list HOST TIER` — the names on another machine, no values.
+- `secrets create-tier TIER` — materialise the keychain for a tier that is in
+  your config but not yet on this machine. `pull` offers this when it needs it.
+- `secrets move FROM TO NAME [--force]` — promote a secret to another tier.
+  Copy, verify the copy, then delete: every failure path leaves the original in
+  place, because the credentials worth moving are usually the ones you cannot
+  simply re-issue.
+
+### Notes on what `pull` can reach
+- It unlocks the remote keychain with an empty password, so it works on
+  `auto-unlock` tiers and fails cleanly on `session` / `prompt` ones. The
+  boundary is the keychain password, not a rule in this tool.
+- The `quarantine` tier is refused outright: those credentials are awaiting
+  revocation, and copying them to a second machine spreads the problem.
+
 ## [0.2.1] - 2026-05-17
 
 ### Added
@@ -69,7 +132,8 @@ Keychains created during setup are unaffected — they live in `~/Library/Keycha
 - Keychain databases (`*.keychain-db`) live exclusively in `~/Library/Keychains/` and never enter the repo.
 - CLI relies on macOS `security(1)` — no custom crypto.
 
-[Unreleased]: https://github.com/frontmatters/secrets-helper/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/frontmatters/secrets-helper/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.3.0
 [0.2.1]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.2.1
 [0.2.0]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.2.0
 [0.1.2]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.1.2

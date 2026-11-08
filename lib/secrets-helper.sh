@@ -6,7 +6,7 @@
 #
 # Then use the bash functions directly:
 #   get dev-secrets MY_TOKEN
-#   add dev-secrets MY_TOKEN ghp_xxxxx
+#   add dev-secrets MY_TOKEN          (asks for the value, hidden)
 #   list dev-secrets
 #
 # These wrap the `secrets` CLI for convenience. They return the same exit
