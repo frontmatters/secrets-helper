@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-08
+
 ### Added
 - `secrets-helper-setup --help` and `--version` now show usage or the version
   without starting the interactive wizard or changing keychains.
@@ -133,6 +135,7 @@ Keychains created during setup are unaffected — they live in `~/Library/Keycha
 - CLI relies on macOS `security(1)` — no custom crypto.
 
 [Unreleased]: https://github.com/frontmatters/secrets-helper/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.3.0
 [0.3.0]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.3.0
 [0.2.1]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.2.1
 [0.2.0]: https://github.com/frontmatters/secrets-helper/releases/tag/v0.2.0
